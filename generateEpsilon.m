@@ -22,6 +22,7 @@ function [ epsilon, subA ] = generateEpsilon( A, sizeBlocks )
 %   If you are using or modifying this code, please cite the following
 %   reference:
 %   M. Barreau, F. Gouaisbaut and A. Seuret,
+%   Static tatic State and Output Feedback Synthesis for Time-Delay Systems
 %
 %   See also jordanForm
 
