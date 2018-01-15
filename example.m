@@ -93,7 +93,7 @@ for l = 1:lmax
         disp(strcat(['No solution found at h=', num2str(h),'.']));
         break;
     else
-        K = value(Kbar)/value(X);
+        K = value(Kbar)/value(X); % Get the new gain K
     end
 end
 
@@ -113,7 +113,7 @@ if sum(pres > 0) == length(pres)
     hmax = 0;
     while i <= nbDecimal && h >= 0
         
-        % New LMI conditions
+        % New LMI conditions because h changed
         GN = [zeros(n) eye(n) zeros(n, (N+1)*n);
             zeros(n*N, 3*n), h*eye(n*N)];
         He = GN'*PN*HN;
@@ -121,6 +121,7 @@ if sum(pres > 0) == length(pres)
         
         Constraints = [PN >= 1e-5, S >= 1e-5, R >= 1e-5, Phi0+T <= -1e-5];
         
+        % Solve the problem
         optimize(Constraints, {}, option);
         pres = checkset(Constraints);
         
@@ -133,9 +134,9 @@ if sum(pres > 0) == length(pres)
             K = value(Kbar)/value(X);
             
             for l = 1:lmax
-                % Generation of the E matrices
-                E3 = generateEpsilon(-B*K, sizeBlocs); % We generate using the initial guess
-                FW = [E1 E2 E3 repmat(zeros(n)/n, 1, N)];
+                % Update of the third E matrix
+                E3 = generateEpsilon(-B*K, sizeBlocs); % We generate using the new value of K
+                FW = [E1 E2 E3 repmat(zeros(n)/n, 1, N)]; % New FW matrix such that FW is close to M
                 
                 T = M'*FW;
                 T = T + T';
@@ -163,7 +164,8 @@ if sum(pres > 0) == length(pres)
             end
         end
         
-        % Modifying h
+        % This is the core of the path-following algorithm
+	% We change the value of h depending on whether the problem was feasible or not
         if solved > 0
             disp('There is a solution. Increase h.');
             hmax = h;
@@ -179,6 +181,7 @@ if sum(pres > 0) == length(pres)
         
     end
     
+    % End of the pth-following search
     disp('===================================');
     disp(strcat(['Maximum hmax=', num2str(hmax),'.']));
     disp('===================================');
